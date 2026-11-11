@@ -56,15 +56,20 @@ export default function DashboardNavigation({
       event.metaKey ||
       event.ctrlKey ||
       event.shiftKey ||
-      event.altKey ||
-      href === pathname
+      event.altKey
     ) {
       return;
     }
 
     event.preventDefault();
     setPendingHref(href);
-    startNavigation(() => router.push(href));
+    startNavigation(() => {
+      if (href === pathname) {
+        router.refresh();
+      } else {
+        router.push(href);
+      }
+    });
   }
 
   const adminNavItems = [
@@ -217,7 +222,7 @@ export default function DashboardNavigation({
                     key={item.href}
                     data-nav-control
                     href={item.href}
-                    prefetch={!isActiveLink(item.href)}
+                    prefetch={false}
                     title={isOpen ? undefined : item.label}
                     aria-label={item.label}
                     onClick={(event) => markNavigationPending(event, item.href)}
@@ -259,7 +264,7 @@ export default function DashboardNavigation({
                 key={item.href}
                 data-nav-control
                 href={item.href}
-                prefetch={!isActiveLink(item.href)}
+                prefetch={false}
                 onClick={(event) => markNavigationPending(event, item.href)}
                 title={isOpen ? undefined : item.label}
                 aria-label={item.label}
@@ -336,7 +341,7 @@ export default function DashboardNavigation({
                 key={item.href}
                 data-nav-control
                 href={item.href}
-                prefetch={!active}
+                prefetch={false}
                 onClick={(event) => markNavigationPending(event, item.href)}
                 className={`${buttonVariants({
                   variant: "plain",
@@ -412,7 +417,7 @@ export default function DashboardNavigation({
                 key={item.href}
                 data-nav-control
                 href={item.href}
-                prefetch={!active}
+                prefetch={false}
                 onClick={(event) => {
                   setShowMoreMenu(false);
                   markNavigationPending(event, item.href);
