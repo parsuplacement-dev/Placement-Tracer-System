@@ -482,14 +482,9 @@ export default function StudyScheduler({
               className="rounded-3xl border border-border bg-card p-6 shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    AY {study.academicYear}
-                  </p>
-                  <h2 className="mt-1 text-lg font-semibold text-foreground">
-                    {study.title}
-                  </h2>
-                </div>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                  AY {study.academicYear}
+                </h2>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[study.status]}`}
                 >
