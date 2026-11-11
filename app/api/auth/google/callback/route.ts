@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { AUTH_COOKIE, COOKIE_OPTIONS } from "@/lib/auth";
 import { authProvider } from "@/lib/auth/provider";
+import { needsSignupName } from "@/lib/auth/signup-name";
 import { ROLES } from "@/types";
 import { recordUserAuditEventSafely } from "@/lib/repositories/audit.repository";
 
@@ -25,7 +26,11 @@ export async function GET(request: NextRequest) {
       targetType: "session",
       metadata: { provider: "google" },
     });
-    const destination = user.role === ROLES.ALUMNI ? "/alumni" : "/admin";
+    const destination = needsSignupName(user)
+      ? "/signup"
+      : user.role === ROLES.ALUMNI
+        ? "/alumni"
+        : "/admin";
     const response = redirect(request, destination);
     response.cookies.set(AUTH_COOKIE, "1", {
       ...COOKIE_OPTIONS,

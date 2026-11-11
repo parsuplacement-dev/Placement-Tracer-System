@@ -12,11 +12,13 @@ import {
   type Role,
 } from "@/types";
 import type { AuthProvider, AuthUser } from "../types";
+import { isParsuAccount } from "../signup-name";
 
 interface AccountRow {
   id: string;
   provider_user_id: string | null;
   name: string;
+  name_confirmed_at: string | null;
   email: string;
   picture_url: string | null;
   role: Role;
@@ -47,6 +49,7 @@ function formatUser(row: AccountRow): AuthUser {
     id: row.id,
     providerUserId: row.provider_user_id,
     name: row.name,
+    nameConfirmedAt: row.name_confirmed_at,
     email: row.email,
     pictureUrl: row.picture_url,
     role: row.role,
@@ -105,7 +108,7 @@ async function linkAccount(providerUser: User) {
 
   if (linked) {
     if (
-      linked.name === profile.name &&
+      (!isParsuAccount(profile.email) || linked.name === profile.name) &&
       linked.picture_url === profile.pictureUrl &&
       linked.email_verified === profile.emailVerified
     ) {
@@ -117,7 +120,7 @@ async function linkAccount(providerUser: User) {
     const { data, error } = await supabase
       .from("auth_accounts")
       .update({
-        name: profile.name,
+        ...(isParsuAccount(profile.email) ? { name: profile.name } : {}),
         picture_url: profile.pictureUrl,
         email_verified: profile.emailVerified,
       })
@@ -150,7 +153,10 @@ async function linkAccount(providerUser: User) {
         provider: "supabase",
         provider_user_id: providerUser.id,
         email: profile.email,
-        name: profile.name,
+        name: isParsuAccount(profile.email)
+          ? profile.name
+          : (imported?.name ?? profile.name),
+        name_confirmed_at: imported?.name_confirmed_at ?? null,
         picture_url: profile.pictureUrl,
         email_verified: profile.emailVerified,
         enabled: imported?.enabled ?? true,

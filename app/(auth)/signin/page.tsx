@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 
@@ -190,6 +191,16 @@ export default function SignInPage() {
                 <FcGoogle aria-hidden="true" size={23} />
                 Sign in with Google
               </Button>
+
+              <p className="mt-4 text-center text-sm text-muted-foreground">
+                New here?{" "}
+                <Link
+                  href="/signup"
+                  className="font-medium text-primary underline underline-offset-4"
+                >
+                  Sign up
+                </Link>
+              </p>
 
               <div className="mt-6 grid gap-3 rounded-2xl border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
                 <div className="flex items-start gap-2">

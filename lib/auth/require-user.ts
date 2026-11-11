@@ -4,6 +4,7 @@ import { cache } from "react";
 import { getCurrentUser } from "./current-user";
 import { requireRole } from "./roles";
 import { Role, ROLES } from "@/types";
+import { needsSignupName } from "./signup-name";
 
 export const requireUser = cache(async function requireUser() {
   const user = await getCurrentUser();
@@ -11,6 +12,8 @@ export const requireUser = cache(async function requireUser() {
   if (!user) {
     redirect("/api/auth/session-expired");
   }
+
+  if (needsSignupName(user)) redirect("/signup");
 
   return { user };
 });

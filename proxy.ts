@@ -133,6 +133,9 @@ export function proxy(request: NextRequest) {
 
   if (pathname.startsWith("/api/")) return protectApiRequest(request);
 
+  // Sign-up supports both Google authentication and authenticated name entry.
+  if (pathname === "/signup") return NextResponse.next();
+
   const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   const hasSession = !!request.cookies.get(AUTH_COOKIE)?.value;

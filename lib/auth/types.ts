@@ -4,6 +4,7 @@ export interface AuthUser {
   id: string;
   providerUserId: string;
   name: string;
+  nameConfirmedAt: string | null;
   email: string;
   pictureUrl: string | null;
   role: Role;

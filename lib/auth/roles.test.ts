@@ -18,6 +18,7 @@ function user(role: AuthUser["role"]): AuthUser {
     id: "canonical-id",
     providerUserId: "provider-id",
     name: "Test User",
+    nameConfirmedAt: "2026-01-01T00:00:00.000Z",
     email: "test@parsu.edu.ph",
     pictureUrl: null,
     role,
