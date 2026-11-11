@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 import Modal from "@/components/ui/Modal";
@@ -10,6 +11,7 @@ interface ConfirmationDialogProps {
   onConfirm: () => void;
   title: string;
   description: string;
+  children?: ReactNode;
   confirmLabel: string;
   cancelLabel?: string;
   busy?: boolean;
@@ -23,6 +25,7 @@ export default function ConfirmationDialog({
   onConfirm,
   title,
   description,
+  children,
   confirmLabel,
   cancelLabel = "Cancel",
   busy = false,
@@ -58,6 +61,8 @@ export default function ConfirmationDialog({
           </Button>
         </>
       }
-    />
+    >
+      {children}
+    </Modal>
   );
 }

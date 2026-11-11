@@ -77,10 +77,6 @@ export async function listStudyPeriodSummaries(): Promise<
   }));
 
   return studies.sort((left, right) => {
-    const statusOrder =
-      Number(right.status === "open") - Number(left.status === "open");
-    if (statusOrder !== 0) return statusOrder;
-
     const academicYearOrder = right.academicYear.localeCompare(
       left.academicYear,
     );

@@ -69,6 +69,7 @@ export async function getOpenStudyByFormSlug(
     .select("*")
     .eq("form_id", form.id)
     .eq("status", "open")
+    .order("academic_year", { ascending: false })
     .order("opens_at", { ascending: false })
     .limit(1)
     .maybeSingle();

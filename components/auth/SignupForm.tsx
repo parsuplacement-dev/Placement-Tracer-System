@@ -217,15 +217,22 @@ export default function SignupForm({
         onClose={() => setReview(null)}
         onConfirm={handleConfirm}
         title="Check your full name"
-        description={
-          review
-            ? `Your account name will be “${formatSignupName(review)}”. Please check the spelling, spacing, and capitalization before confirming.`
-            : ""
-        }
+        description="Please check the spelling, spacing, and capitalization before confirming."
         confirmLabel="Confirm and finish sign-up"
         cancelLabel="Edit name"
         busy={busy}
-      />
+      >
+        {review && (
+          <div className="rounded-2xl border border-primary/30 bg-primary/10 p-5 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Your account name
+            </p>
+            <p className="mt-2 break-words text-xl font-semibold leading-8 text-foreground sm:text-2xl">
+              {formatSignupName(review)}
+            </p>
+          </div>
+        )}
+      </ConfirmationDialog>
     </>
   );
 }
