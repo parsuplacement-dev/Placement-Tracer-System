@@ -82,12 +82,26 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ studyId: string }> },
 ) {
+  const startedAt = performance.now();
+  const timings: Record<string, number> = {};
+  let activeStep = "authentication";
+  let failed = false;
+  async function measure<T>(step: string, operation: () => Promise<T>) {
+    activeStep = step;
+    const stepStartedAt = performance.now();
+    try {
+      return await operation();
+    } finally {
+      timings[step] = Math.round(performance.now() - stepStartedAt);
+    }
+  }
+
   try {
-    const { user } = await requireUser();
+    const { user } = await measure("authentication", () => requireUser());
     requireRole(user, [ROLES.ALUMNI]);
 
     const { studyId } = await params;
-    const context = await getStudyContext(studyId);
+    const context = await measure("study", () => getStudyContext(studyId));
 
     if (!context) {
       return NextResponse.json(
@@ -106,6 +120,7 @@ export async function PUT(
       );
     }
 
+    activeStep = "validation";
     const body = (await request.json()) as SaveResponseBody;
 
     if (!isAnswersObject(body.answers) || !isResponseStatus(body.status)) {
@@ -161,21 +176,27 @@ export async function PUT(
       }
     }
 
-    const { response, shouldOrganize } = await saveFormResponse({
+    const saveInput = {
       studyPeriodId: studyId,
       userId: user.id,
       status: body.status,
       answers: body.answers,
       expectedUpdatedAt: body.expectedUpdatedAt,
-    });
+    };
+    const { response, shouldOrganize } = await measure("save", () =>
+      saveFormResponse(saveInput),
+    );
 
-    await recordUserAuditEventSafely(user, {
-      action: "response.saved",
-      targetType: "form_response",
-      targetId: response.id,
-      metadata: { studyPeriodId: studyId, status: response.status },
-    });
+    await measure("audit", () =>
+      recordUserAuditEventSafely(user, {
+        action: "response.saved",
+        targetType: "form_response",
+        targetId: response.id,
+        metadata: { studyPeriodId: studyId, status: response.status },
+      }),
+    );
 
+    activeStep = "finalize";
     if (shouldOrganize) {
       after(async () => {
         try {
@@ -186,11 +207,19 @@ export async function PUT(
       });
     }
 
-    return NextResponse.json({
+    const result = NextResponse.json({
       success: true,
       data: response,
     });
+    result.headers.set(
+      "Server-Timing",
+      Object.entries(timings)
+        .map(([step, duration]) => `${step};dur=${duration}`)
+        .join(", "),
+    );
+    return result;
   } catch (error) {
+    failed = true;
     if (error instanceof StaleFormResponseError) {
       return NextResponse.json(
         {
@@ -208,6 +237,15 @@ export async function PUT(
       { success: false, message: "Failed to save the study response." },
       { status: 500 },
     );
+  } finally {
+    const totalMs = Math.round(performance.now() - startedAt);
+    if (failed || totalMs >= 1_000) {
+      console.info("Study response save timing:", {
+        totalMs,
+        stepsMs: timings,
+        failedStep: failed ? activeStep : undefined,
+      });
+    }
   }
 }
 

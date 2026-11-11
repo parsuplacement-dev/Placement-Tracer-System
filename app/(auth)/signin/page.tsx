@@ -98,7 +98,7 @@ export default function SignInPage() {
             <div className="relative">
               <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider">
                 <LuGraduationCap aria-hidden="true" />
-                ParSU Placement Unit ---
+                ParSU Placement Unit
               </div>
 
               <h1 className="mt-6 max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">
