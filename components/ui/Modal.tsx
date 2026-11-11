@@ -30,6 +30,7 @@ export interface ModalProps {
   fitContent?: boolean;
   showCloseButton?: boolean;
   placement?: ModalPlacement;
+  preserveScrollbarGutter?: boolean;
   onExitComplete?: () => void;
 }
 
@@ -165,7 +166,7 @@ function getNativeScrollbarWidth() {
   return cachedNativeScrollbarWidth;
 }
 
-function lockPageScroll() {
+function lockPageScroll(preserveScrollbarGutter: boolean) {
   if (rootScrollLockCount === 0) {
     const root = document.documentElement;
     const rootGutterWidth = Math.max(0, window.innerWidth - root.clientWidth);
@@ -176,7 +177,7 @@ function lockPageScroll() {
     rootScrollbarGutterBeforeLock = root.style.scrollbarGutter;
     bodyPaddingRightBeforeLock = document.body.style.paddingRight;
 
-    if (reservedGutterWidth > 0) {
+    if (preserveScrollbarGutter && reservedGutterWidth > 0) {
       const bodyPaddingRight =
         Number.parseFloat(
           window.getComputedStyle(document.body).paddingRight,
@@ -220,6 +221,7 @@ export default function Modal({
   fitContent = false,
   showCloseButton = true,
   placement = "center",
+  preserveScrollbarGutter = true,
   onExitComplete,
 }: ModalProps) {
   const titleId = useId();
@@ -239,7 +241,7 @@ export default function Modal({
     if (!open) return;
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
-    lockPageScroll();
+    lockPageScroll(preserveScrollbarGutter);
 
     const focusFrame = window.requestAnimationFrame(() => {
       const firstFocusable =

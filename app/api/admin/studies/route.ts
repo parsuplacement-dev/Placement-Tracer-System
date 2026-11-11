@@ -17,6 +17,8 @@ import { recordUserAuditEventSafely } from "@/lib/repositories/audit.repository"
 const ACADEMIC_YEAR_PATTERN = /^(\d{4})-(\d{4})$/;
 
 export const maxDuration = 300;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function isValidAcademicYear(value: string) {
   const match = ACADEMIC_YEAR_PATTERN.exec(value);
@@ -41,14 +43,17 @@ export async function GET() {
         }))
       : studies;
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        studies: visibleStudies,
-        formVersions,
-        allowedProgramValues,
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          studies: visibleStudies,
+          formVersions,
+          allowedProgramValues,
+        },
       },
-    });
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   } catch (error) {
     console.error("Failed to list study periods:", error);
 

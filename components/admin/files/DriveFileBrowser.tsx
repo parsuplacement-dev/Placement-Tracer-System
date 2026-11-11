@@ -976,7 +976,7 @@ export default function DriveFileBrowser() {
                     canUpload
                       ? "grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:grid-cols-[auto_auto_minmax(0,1fr)_7rem_9rem_11rem_auto]"
                       : "grid-cols-[auto_auto_minmax(0,1fr)] lg:grid-cols-[auto_auto_minmax(0,1fr)_7rem_9rem_11rem]"
-                  } ${activeMenuId === item.id ? "z-40" : "z-0"}`}
+                  } ${activeMenuId === item.id ? "z-60" : "z-0"}`}
                 >
                   {canUpload ? (
                     <Checkbox
@@ -1055,7 +1055,7 @@ export default function DriveFileBrowser() {
                       data-file-menu
                       onClick={(event) => event.stopPropagation()}
                       className={`relative flex shrink-0 items-center ${
-                        activeMenuId === item.id ? "z-50" : "z-10"
+                        activeMenuId === item.id ? "z-60" : "z-10"
                       }`}
                     >
                       <Button
@@ -1074,7 +1074,7 @@ export default function DriveFileBrowser() {
                         <AnimatedEllipsisVerticalIcon size={18} />
                       </Button>
                       {activeMenuId === item.id && (
-                        <div className="absolute top-[calc(100%+0.25rem)] right-0 z-50 w-44 overflow-hidden rounded-xl border border-border bg-card p-2 shadow-xl">
+                        <div className="absolute top-[calc(100%+0.25rem)] right-0 z-60 w-44 overflow-hidden rounded-xl border border-border bg-card p-2 shadow-xl">
                           <Button
                             type="button"
                             variant="ghost"

@@ -151,10 +151,14 @@ export async function setStudyPeriodStatus(
     .from("study_periods")
     .update({ lifecycle_status: status })
     .eq("id", studyPeriodId)
-    .select()
+    .select("id, lifecycle_status")
     .single();
 
   if (error) throw error;
+  if (data.lifecycle_status !== status) {
+    throw new Error("Study lifecycle status was not persisted.");
+  }
+
   return data;
 }
 

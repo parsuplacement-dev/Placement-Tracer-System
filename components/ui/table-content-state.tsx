@@ -24,24 +24,26 @@ export function TableContentState({
 }: TableContentStateProps) {
   return (
     <TableRow className="hover:bg-transparent">
-      <TableCell colSpan={colSpan} className="h-72 p-4">
-        {error ? (
-          <ErrorState
-            message={error}
-            retryLabel={retryLabel}
-            onRetry={onRetry}
-          />
-        ) : loadingMessage ? (
-          <div
-            role="status"
-            aria-live="polite"
-            className="flex min-h-64 items-center justify-center text-center text-sm font-medium text-muted-foreground"
-          >
-            {loadingMessage}
-          </div>
-        ) : (
-          children
-        )}
+      <TableCell colSpan={colSpan} className="h-72 p-0">
+        <div className="flex min-h-64 items-center justify-center text-center">
+          {error ? (
+            <ErrorState
+              message={error}
+              retryLabel={retryLabel}
+              onRetry={onRetry}
+            />
+          ) : loadingMessage ? (
+            <div
+              role="status"
+              aria-live="polite"
+              className="text-sm font-medium text-muted-foreground"
+            >
+              {loadingMessage}
+            </div>
+          ) : (
+            children
+          )}
+        </div>
       </TableCell>
     </TableRow>
   );

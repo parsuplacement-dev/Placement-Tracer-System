@@ -5,6 +5,9 @@ import { getStudyContext } from "@/lib/repositories/forms.repository";
 import { setStudyPeriodStatus } from "@/lib/repositories/study-admin.repository";
 import { recordUserAuditEventSafely } from "@/lib/repositories/audit.repository";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ studyId: string }> },
@@ -29,10 +32,6 @@ export async function PATCH(
       );
     }
 
-    if (context.study.status === body.status) {
-      return NextResponse.json({ success: true, data: context.study });
-    }
-
     const study = await setStudyPeriodStatus(studyId, body.status);
     await recordUserAuditEventSafely(admin, {
       action: "study.status_changed",
@@ -40,7 +39,10 @@ export async function PATCH(
       targetId: studyId,
       metadata: { from: context.study.status, to: body.status },
     });
-    return NextResponse.json({ success: true, data: study });
+    return NextResponse.json(
+      { success: true, data: study },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   } catch (error) {
     console.error("Failed to change study status:", error);
     return NextResponse.json(

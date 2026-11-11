@@ -216,6 +216,7 @@ export default function AccountsTable({
         : "DEMOTE TO ALUMNI";
   const requiredRoleConfirmation = `${roleConfirmationAction} ${roleConfirmationCode}`;
   const requiredDeleteConfirmation = `DELETE ${deleteConfirmationCode}`;
+  const normalizedRoleConfirmation = roleConfirmation.trim().toUpperCase();
 
   function openDeleteConfirmation(account: Account) {
     setDeleteConfirmation("");
@@ -287,7 +288,18 @@ export default function AccountsTable({
   };
 
   const confirmRoleChange = async () => {
-    if (!roleChange || roleConfirmation !== requiredRoleConfirmation) return;
+    if (!roleChange || normalizedRoleConfirmation !== requiredRoleConfirmation)
+      return;
+    if (
+      roleChange.role === ROLES.COORDINATOR &&
+      roleChange.coordinatorGrants.length === 0
+    ) {
+      showToast({
+        message: "Add at least one coordinator assignment.",
+        type: "error",
+      });
+      return;
+    }
     setChangingRole(true);
 
     try {
@@ -299,7 +311,7 @@ export default function AccountsTable({
           action: "set_access",
           role: roleChange.role,
           coordinatorGrants: roleChange.coordinatorGrants,
-          confirmation: roleConfirmation,
+          confirmation: normalizedRoleConfirmation,
         }),
       });
       const data = await res.json();
@@ -1221,9 +1233,7 @@ export default function AccountsTable({
               variant="destructive"
               disabled={
                 changingRole ||
-                roleConfirmation !== requiredRoleConfirmation ||
-                (roleChange?.role === ROLES.COORDINATOR &&
-                  roleChange.coordinatorGrants.length === 0)
+                normalizedRoleConfirmation !== requiredRoleConfirmation
               }
               onClick={() => void confirmRoleChange()}
             >

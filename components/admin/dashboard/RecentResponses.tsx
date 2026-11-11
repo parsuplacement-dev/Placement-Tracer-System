@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import { LuChevronRight } from "@/components/ui/icons";
 
 import ManualResponseEditor from "@/components/admin/responses/ManualResponseEditor";
-import ReadOnlyResponseDetails from "@/components/responses/ReadOnlyResponseDetails";
+import ReadOnlyResponseDetails, {
+  TracerResponseModalHeader,
+} from "@/components/responses/ReadOnlyResponseDetails";
 import LoadingState from "@/components/ui/LoadingState";
 import Modal from "@/components/ui/Modal";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -21,6 +23,22 @@ interface ResponseMetadata {
   source: "alumni" | "admin_import";
   respondentEmail: string;
   studyStatus: "open" | "closed";
+}
+
+function formatRespondentName(item: AdminResponseSummary) {
+  const surname = item.lastName?.trim();
+  const givenNames = [item.firstName, item.middleName, item.extensionName]
+    .map((part) => part?.trim())
+    .filter(Boolean);
+
+  if (surname && givenNames.length > 0) {
+    return `${surname}, ${givenNames.join(" ")}`;
+  }
+  if (surname) return surname;
+  if (givenNames.length > 0) return givenNames.join(" ");
+  return (
+    item.respondentName?.trim() || item.respondentEmail || "Unnamed respondent"
+  );
 }
 
 export default function RecentResponses({ responses }: RecentResponsesProps) {
@@ -105,60 +123,61 @@ export default function RecentResponses({ responses }: RecentResponsesProps) {
 
       {responses.length > 0 ? (
         <div className="divide-y divide-border">
-          {responses.map((item) => (
-            <div
-              key={item.id}
-              role="button"
-              tabIndex={0}
-              aria-label={`${item.source === "admin_import" ? "Edit" : "View"} response from ${item.respondentName || item.respondentEmail || "unnamed respondent"}`}
-              onDoubleClick={() => setSelectedResponseId(item.id)}
-              onPointerUp={(event) => {
-                if (event.pointerType !== "mouse") {
-                  setSelectedResponseId(item.id);
-                }
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  setSelectedResponseId(item.id);
-                }
-              }}
-              className="flex cursor-pointer flex-wrap items-center gap-3 px-5 py-4 outline-none transition-colors duration-200 hover:bg-data-hover focus-visible:bg-data-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-6"
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
-                {(item.respondentName ?? item.respondentEmail ?? "R")
-                  .trim()
-                  .charAt(0)
-                  .toUpperCase()}
-              </span>
-              <span className="min-w-40 flex-1">
-                <span className="block truncate text-sm font-semibold text-foreground">
-                  {item.respondentName ||
-                    item.respondentEmail ||
-                    "Unnamed respondent"}
-                </span>
-                <span className="block truncate text-xs text-muted-foreground">
-                  {item.studyTitle} · {item.academicYear}
-                </span>
-              </span>
-              <span className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span
-                  className={`rounded-full px-2.5 py-1 font-semibold ${
-                    item.status === "submitted"
-                      ? "bg-success/15 text-success"
-                      : "bg-warning/15 text-warning"
-                  }`}
+          {responses.map((item) =>
+            (() => {
+              const respondentName = formatRespondentName(item);
+
+              return (
+                <div
+                  key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${item.source === "admin_import" ? "Edit" : "View"} response from ${respondentName}`}
+                  onDoubleClick={() => setSelectedResponseId(item.id)}
+                  onPointerUp={(event) => {
+                    if (event.pointerType !== "mouse") {
+                      setSelectedResponseId(item.id);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelectedResponseId(item.id);
+                    }
+                  }}
+                  className="flex cursor-pointer flex-wrap items-center gap-3 px-5 py-4 outline-none transition-colors duration-200 hover:bg-data-hover focus-visible:bg-data-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-6"
                 >
-                  {item.status}
-                </span>
-                {new Date(item.createdAt).toLocaleDateString("en-PH", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-          ))}
+                  <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
+                    {respondentName.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <span className="min-w-40 flex-1">
+                    <span className="block truncate text-sm font-semibold text-foreground">
+                      {respondentName}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {item.studyTitle} · {item.academicYear}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span
+                      className={`rounded-full px-2.5 py-1 font-semibold ${
+                        item.status === "submitted"
+                          ? "bg-success/15 text-success"
+                          : "bg-warning/15 text-warning"
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                    {new Date(item.createdAt).toLocaleDateString("en-PH", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+              );
+            })(),
+          )}
         </div>
       ) : (
         <div className="p-10 text-center text-sm text-muted-foreground">
@@ -173,6 +192,14 @@ export default function RecentResponses({ responses }: RecentResponsesProps) {
           metadata?.source === "admin_import"
             ? "Edit Manual Response"
             : "View Tracer Response"
+        }
+        headerContent={
+          response && metadata?.source !== "admin_import" ? (
+            <TracerResponseModalHeader response={response} />
+          ) : undefined
+        }
+        headerVariant={
+          response && metadata?.source !== "admin_import" ? "accent" : "default"
         }
         width="xl"
       >

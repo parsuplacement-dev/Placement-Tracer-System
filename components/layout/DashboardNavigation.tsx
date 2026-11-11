@@ -400,6 +400,7 @@ export default function DashboardNavigation({
         width="sm"
         fitContent
         placement="bottom"
+        preserveScrollbarGutter={false}
       >
         <nav aria-label="More pages" className="grid gap-2">
           {mobileMoreItems.map((item) => {

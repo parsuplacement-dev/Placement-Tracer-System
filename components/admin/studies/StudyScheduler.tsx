@@ -177,6 +177,7 @@ export default function StudyScheduler({
         message: status === "open" ? "Study opened." : "Study closed.",
         type: "success",
       });
+      await loadStudies();
       router.refresh();
     } catch (error) {
       showToast({
