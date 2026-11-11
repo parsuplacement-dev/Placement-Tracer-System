@@ -29,7 +29,7 @@ const alumniInformation: InfoAccordionItem[] = [
     id: "access",
     title: "Signing in to the Tracer System",
     content:
-      "Use your official @parsu.edu.ph Google account. The system does not maintain a separate password for your Tracer System access.",
+      "Use your Google account, including a personal or university account. The system does not maintain a separate password for your Tracer System access.",
   },
   {
     id: "response",
@@ -50,7 +50,7 @@ const adminInformation: InfoAccordionItem[] = [
     id: "access",
     title: "Administrator access",
     content:
-      "Administrator access is tied to your official @parsu.edu.ph Google account and the admin role assigned to your Tracer System account.",
+      "Administrator access is tied to your Google account and the admin role assigned to your Tracer System account.",
   },
   {
     id: "accounts",

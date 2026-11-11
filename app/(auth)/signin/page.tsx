@@ -45,7 +45,7 @@ const termsSections = [
   },
   {
     title: "2. Authorized access",
-    body: "Access is intended for eligible alumni and authorized university personnel. You must use your own official account, keep access credentials secure, and avoid allowing another person to use your session. Administrative access must be used only for assigned university duties.",
+    body: "Access is intended for eligible alumni and authorized university personnel. You must use your own Google account, keep access credentials secure, and avoid allowing another person to use your session. Administrative access must be used only for assigned university duties.",
   },
   {
     title: "3. Accurate and appropriate information",
@@ -160,25 +160,9 @@ export default function SignInPage() {
                 Welcome back
               </h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Sign in securely with your official university Google account to
-                access your tracer study.
+                Sign in securely with your Google account to access your tracer
+                study.
               </p>
-
-              {error === "unauthorized_domain" && (
-                <div
-                  role="alert"
-                  className="mt-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
-                >
-                  <LuCircleAlert
-                    aria-hidden="true"
-                    size={20}
-                    className="mt-0.5 shrink-0"
-                  />
-                  <span>
-                    Please use your official @parsu.edu.ph Google account.
-                  </span>
-                </div>
-              )}
 
               {error === "oauth_failed" && (
                 <div
@@ -213,8 +197,7 @@ export default function SignInPage() {
                     aria-hidden="true"
                     className="mt-0.5 shrink-0 text-success"
                   />
-                  Authentication is handled through your official Google
-                  account.
+                  Authentication is handled through your Google account.
                 </div>
                 <div className="flex items-start gap-2">
                   <LuCheck

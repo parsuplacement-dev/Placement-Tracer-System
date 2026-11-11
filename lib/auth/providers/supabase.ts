@@ -69,8 +69,8 @@ function formatUser(row: AccountRow): AuthUser {
 
 function googleProfile(user: User) {
   const email = user.email?.trim().toLowerCase();
-  if (!email || !email.endsWith("@parsu.edu.ph")) {
-    throw new Error("Unauthorized email domain");
+  if (!email) {
+    throw new Error("A Google account email is required");
   }
 
   const provider = user.app_metadata.provider;
@@ -206,7 +206,6 @@ export const supabaseAuthProvider: AuthProvider = {
         queryParams: {
           access_type: "offline",
           prompt: "select_account",
-          hd: "parsu.edu.ph",
         },
       },
     });

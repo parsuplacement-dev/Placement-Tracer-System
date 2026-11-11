@@ -37,9 +37,7 @@ export async function GET(request: NextRequest) {
     const message = error instanceof Error ? error.message : "";
     const reason = message.includes("OAuth state")
       ? "invalid_oauth_state"
-      : message.includes("domain")
-        ? "unauthorized_domain"
-        : "oauth_failed";
+      : "oauth_failed";
     return redirect(request, `/signin?error=${reason}`);
   }
 }

@@ -6,7 +6,7 @@ This README is the operational and developer handoff document. The UI rules are 
 
 ## What the system does
 
-- Signs in institutional `@parsu.edu.ph` users through Google and Supabase Auth.
+- Signs in users with personal or university Google accounts through Google and Supabase Auth.
 - Maintains provider-neutral application accounts with `admin`, `coordinator`, and `alumni` roles.
 - Gives coordinators the union of campus-, college-, and program-level grants assigned by an administrator.
 - Publishes immutable, versioned tracer forms into manually opened or closed academic-year study periods.
@@ -151,7 +151,7 @@ Test migration changes against a disposable project before production. Never edi
 1. Enable Google in Supabase Authentication and supply the Google OAuth client ID/secret requested there.
 2. Add the Supabase-provided provider callback URL to the OAuth client's authorized redirect URIs in Google Cloud.
 3. In Supabase URL Configuration, set the production Site URL and allow `http://localhost:3000/api/auth/google/callback` plus the production equivalent.
-4. Sign-in is restricted in code to Google users with a normalized `@parsu.edu.ph` address.
+4. Sign-in accepts personal and university Google accounts; the application does not restrict email domains.
 
 ### 5. Authorize Google Drive
 
@@ -165,7 +165,7 @@ Do not expose the Drive setup route through a tunnel. Store the production refre
 
 ### 6. Bootstrap the first administrator
 
-New valid institutional users default to `alumni`. After the intended first administrator signs in once, promote that exact account from the Supabase SQL editor, then sign out and back in:
+New Google users default to `alumni`. After the intended first administrator signs in once, promote that exact account from the Supabase SQL editor, then sign out and back in:
 
 ```sql
 update public.auth_accounts
@@ -373,18 +373,18 @@ If a credential or environment file is exposed, rotate the Supabase secret, Goog
 
 ### Troubleshooting
 
-| Symptom                                 | Check                                                                                                                 |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Sign-in loops or `oauth_failed`         | Supabase Google provider, Site URL/redirect allow-list, exact callback, system clock, and institutional email domain. |
-| User signs in as alumni unexpectedly    | `auth_accounts.role`; role changes require a fresh session/navigation.                                                |
-| Coordinator sees too much/little        | Grant shapes in `coordinator_scope_grants` and matching values in `lib/programs/catalog.ts`.                          |
-| No active tracer form                   | Study exists, is not archived, uses a published version, and `lifecycle_status` is `open`.                            |
-| Draft reports a conflict                | Another tab/session saved newer `updated_at` content; reload before overwriting.                                      |
-| Drive authorization fails               | Exact redirect URI, API enabled, consent/scopes, refresh-token validity, and root-folder permission.                  |
-| File is missing from browser            | Drive index sync, correct Admin Files ancestry, root ID, and `google_drive_items.last_synced_at`.                     |
-| Upload stalls/fails                     | 10 MB limit, allowed MIME/signature, resumable session expiry/origin, Drive quota, and staging folder.                |
-| Export is rejected                      | Role/scope, filter parameters, rate limit, and external-service timeout.                                              |
-| `supabase db reset` asks for `seed.sql` | Ensure current `supabase/config.toml` has `[db.seed] enabled = false`; form data is migration-seeded.                 |
+| Symptom                                 | Check                                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Sign-in loops or `oauth_failed`         | Supabase Google provider, Site URL/redirect allow-list, exact callback, and system clock.              |
+| User signs in as alumni unexpectedly    | `auth_accounts.role`; role changes require a fresh session/navigation.                                 |
+| Coordinator sees too much/little        | Grant shapes in `coordinator_scope_grants` and matching values in `lib/programs/catalog.ts`.           |
+| No active tracer form                   | Study exists, is not archived, uses a published version, and `lifecycle_status` is `open`.             |
+| Draft reports a conflict                | Another tab/session saved newer `updated_at` content; reload before overwriting.                       |
+| Drive authorization fails               | Exact redirect URI, API enabled, consent/scopes, refresh-token validity, and root-folder permission.   |
+| File is missing from browser            | Drive index sync, correct Admin Files ancestry, root ID, and `google_drive_items.last_synced_at`.      |
+| Upload stalls/fails                     | 10 MB limit, allowed MIME/signature, resumable session expiry/origin, Drive quota, and staging folder. |
+| Export is rejected                      | Role/scope, filter parameters, rate limit, and external-service timeout.                               |
+| `supabase db reset` asks for `seed.sql` | Ensure current `supabase/config.toml` has `[db.seed] enabled = false`; form data is migration-seeded.  |
 
 ## Change guide
 

@@ -237,16 +237,16 @@ const ManualResponseEntry = forwardRef<
         ["awards", documents.awards],
       ] as const) {
         for (const file of files) {
-          const document = await uploadManualDocument(
-            response,
+          const document = await uploadFormResponseDocument(
+            saved.id,
             file,
             documentType,
+            { uploadKey: getUploadKey(file) },
           );
           if (document.uploadKey) uploadKeys.add(document.uploadKey);
         }
       }
 
-      await persistManualResponse(response, "submitted");
       const completionResponse = await fetch(
         `/api/admin/responses/${saved.id}/import`,
         {
