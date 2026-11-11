@@ -1,0 +1,32 @@
+name: Supabase keep alive
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Query Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_URL:?Missing SUPABASE_URL}"
+          : "${SUPABASE_SECRET_KEY:?Missing SUPABASE_SECRET_KEY}"
+
+          curl --fail --silent --show-error \
+            --retry 2 \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --header "apikey: ${SUPABASE_SECRET_KEY}" \
+            --output /dev/null \
+            "${SUPABASE_URL%/}/rest/v1/study_periods?select=id&limit=1"
+
+          echo "Supabase database query succeeded."
