@@ -2,7 +2,6 @@ import ResponseWorkspace from "@/components/responses/ResponseWorkspace";
 import { requireUser } from "@/lib/auth";
 import { formResponseToSurvey } from "@/lib/forms/graduate-tracer-adapter";
 import {
-  getFormResponse,
   getFormResponseDocuments,
   listFormResponsesByUser,
 } from "@/lib/repositories/form-responses.repository";
@@ -14,15 +13,19 @@ import { defaultSurvey } from "@/lib/surveys/defaults";
 
 export default async function ResponsesPage() {
   const { user } = await requireUser();
-  const openContext = await getOpenStudyByFormSlug("graduate-tracer");
-  const previousResponses = await listFormResponsesByUser(user.id);
+  const [openContext, previousResponses] = await Promise.all([
+    getOpenStudyByFormSlug("graduate-tracer"),
+    listFormResponsesByUser(user.id),
+  ]);
   const response = openContext
-    ? await getFormResponse(openContext.study.id, user.id)
+    ? (previousResponses.find(
+        (item) => item.studyPeriodId === openContext.study.id,
+      ) ?? null)
     : (previousResponses[0] ?? null);
-  const context =
-    openContext ??
-    (response ? await getStudyContext(response.studyPeriodId) : null);
-  const documents = response ? await getFormResponseDocuments(response.id) : [];
+  const [context, documents] = await Promise.all([
+    openContext ?? (response ? getStudyContext(response.studyPeriodId) : null),
+    response ? getFormResponseDocuments(response.id) : [],
+  ]);
 
   if (!context) {
     return (

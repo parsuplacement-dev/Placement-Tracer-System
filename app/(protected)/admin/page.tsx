@@ -17,8 +17,8 @@ import EmploymentPieChart from "@/components/admin/dashboard/EmploymentPieChart"
 import { buttonVariants } from "@/components/ui/button-variants";
 import { getAllowedProgramValues, isAdmin, requireStaff } from "@/lib/auth";
 import { PROGRAMS } from "@/lib/programs/catalog";
-import { listAdminDashboardResponses } from "@/lib/repositories/admin-responses.repository";
-import { listStudyPeriodSummaries } from "@/lib/repositories/study-admin.repository";
+import { getAdminDashboardSummary } from "@/lib/repositories/admin-responses.repository";
+import { listStudyPeriods } from "@/lib/repositories/forms.repository";
 
 function firstName(name: string) {
   return name.trim().split(/\s+/)[0] || "Administrator";
@@ -31,32 +31,26 @@ function pluralize(count: number, singular: string, plural = `${singular}s`) {
 export default async function AdminPage() {
   const user = await requireStaff();
   const allowedProgramValues = getAllowedProgramValues(user);
-  const [studies, responses] = await Promise.all([
-    listStudyPeriodSummaries(),
-    listAdminDashboardResponses(allowedProgramValues),
+  const [studies, summary] = await Promise.all([
+    listStudyPeriods(),
+    getAdminDashboardSummary(allowedProgramValues),
   ]);
   const openStudy = studies.find((study) => study.status === "open") ?? null;
-  const submitted = responses.filter(
-    (response) => response.status === "submitted",
+  const openCounts = summary.studyCounts.find(
+    (counts) => counts.study_period_id === openStudy?.id,
   );
-  const openResponses = openStudy
-    ? responses.filter((response) => response.studyPeriodId === openStudy.id)
-    : [];
-  const openResponseCount = openResponses.length;
-  const openSubmittedCount = openResponses.filter(
-    (response) => response.status === "submitted",
-  ).length;
+  const openResponseCount = openCounts?.response_count ?? 0;
+  const openSubmittedCount = openCounts?.submitted_count ?? 0;
   const submissionRate = openResponseCount
     ? Math.round((openSubmittedCount / openResponseCount) * 100)
     : 0;
-  const employmentAnswered = submitted.filter((response) =>
-    ["Yes", "No", "Never Employed"].includes(response.employmentStatus),
-  );
-  const employedCount = employmentAnswered.filter(
-    (response) => response.employmentStatus === "Yes",
-  ).length;
-  const employmentRate = employmentAnswered.length
-    ? Math.round((employedCount / employmentAnswered.length) * 100)
+  const employedCount = summary.employmentCounts.employed;
+  const employmentAnsweredCount =
+    employedCount +
+    summary.employmentCounts.unemployed +
+    summary.employmentCounts.never_employed;
+  const employmentRate = employmentAnsweredCount
+    ? Math.round((employedCount / employmentAnsweredCount) * 100)
     : 0;
   const employmentBreakdown = [
     {
@@ -68,32 +62,22 @@ export default async function AdminPage() {
     {
       status: "No",
       label: "Not employed",
-      count: employmentAnswered.filter(
-        (response) => response.employmentStatus === "No",
-      ).length,
+      count: summary.employmentCounts.unemployed,
       colorClass: "bg-orange-600 dark:bg-orange-500",
     },
     {
       status: "Never Employed",
       label: "Never employed",
-      count: employmentAnswered.filter(
-        (response) => response.employmentStatus === "Never Employed",
-      ).length,
+      count: summary.employmentCounts.never_employed,
       colorClass: "bg-blue-600 dark:bg-blue-500",
     },
   ];
-  const programCounts = Array.from(
-    submitted.reduce((counts, response) => {
-      const program = response.program.trim() || "Not specified";
-      counts.set(program, (counts.get(program) ?? 0) + 1);
-      return counts;
-    }, new Map<string, number>()),
-  ).sort((left, right) => right[1] - left[1]);
+  const programCounts = summary.programCounts;
   const maxProgramCount = programCounts[0]?.[1] ?? 0;
   const programNames = new Map(
     PROGRAMS.map((program) => [program.value, program.label]),
   );
-  const recentResponses = responses.slice(0, 5);
+  const recentResponses = summary.recentResponses;
 
   const metrics = [
     {
@@ -111,14 +95,14 @@ export default async function AdminPage() {
     {
       label: "Employment rate",
       value: `${employmentRate}%`,
-      detail: `${employedCount} of ${employmentAnswered.length} reporting ${pluralize(employmentAnswered.length, "graduate")}`,
+      detail: `${employedCount} of ${employmentAnsweredCount} reporting ${pluralize(employmentAnsweredCount, "graduate")}`,
       icon: LuBriefcaseBusiness,
     },
     {
       label: "Programs represented",
       value: programCounts.filter(([program]) => program !== "Not specified")
         .length,
-      detail: `${submitted.length} submitted ${pluralize(submitted.length, "response")} analyzed`,
+      detail: `${summary.submittedCount} submitted ${pluralize(summary.submittedCount, "response")} analyzed`,
       icon: LuGraduationCap,
     },
   ];
@@ -197,8 +181,8 @@ export default async function AdminPage() {
                 Employment status
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Based on {employmentAnswered.length} submitted{" "}
-                {pluralize(employmentAnswered.length, "response")} with an
+                Based on {employmentAnsweredCount} submitted{" "}
+                {pluralize(employmentAnsweredCount, "response")} with an
                 employment answer
               </p>
             </div>
@@ -210,8 +194,8 @@ export default async function AdminPage() {
             <EmploymentPieChart slices={employmentBreakdown} />
             <div className="w-full min-w-0 space-y-3 sm:max-w-60">
               {employmentBreakdown.map((item) => {
-                const percentage = employmentAnswered.length
-                  ? Math.round((item.count / employmentAnswered.length) * 100)
+                const percentage = employmentAnsweredCount
+                  ? Math.round((item.count / employmentAnsweredCount) * 100)
                   : 0;
                 return (
                   <div

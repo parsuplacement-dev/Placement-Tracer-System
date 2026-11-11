@@ -198,30 +198,38 @@ export async function listAdminResponseSummaries({
   };
 }
 
-/**
- * Loads the complete, access-scoped response set used for dashboard rollups.
- * Pagination avoids silently truncating analytics at Supabase's row limit.
- */
-export async function listAdminDashboardResponses(
+interface DashboardSummaryRow {
+  study_counts: {
+    study_period_id: string;
+    response_count: number;
+    submitted_count: number;
+  }[];
+  submitted_count: number;
+  employment_counts: {
+    employed: number;
+    unemployed: number;
+    never_employed: number;
+  };
+  program_counts: { program: string; count: number }[];
+  recent_responses: AdminResponseSummaryRow[];
+}
+
+/** Aggregate all scoped responses in PostgreSQL; transfer only totals and five recent rows. */
+export async function getAdminDashboardSummary(
   allowedProgramValues: string[] | null = null,
 ) {
-  const pageSize = 1000;
-  const responses: AdminResponseSummary[] = [];
-  let page = 1;
-  let total = 0;
-
-  do {
-    const result = await listAdminResponseSummaries({
-      filters: {},
-      page,
-      limit: pageSize,
-      allowedProgramValues,
-    });
-
-    responses.push(...result.responses);
-    total = result.total;
-    page += 1;
-  } while (responses.length < total);
-
-  return responses;
+  const { data, error } = await supabase.rpc("admin_dashboard_summary", {
+    allowed_program_values: allowedProgramValues,
+  });
+  if (error) throw error;
+  const summary = data as DashboardSummaryRow;
+  return {
+    studyCounts: summary.study_counts,
+    submittedCount: summary.submitted_count,
+    employmentCounts: summary.employment_counts,
+    programCounts: summary.program_counts.map(
+      ({ program, count }): [string, number] => [program, count],
+    ),
+    recentResponses: summary.recent_responses.map(mapSummary),
+  };
 }

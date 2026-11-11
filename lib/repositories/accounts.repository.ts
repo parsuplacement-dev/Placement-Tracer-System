@@ -7,6 +7,10 @@ import {
   type Role,
 } from "@/types";
 import { EXTERNAL_TIMEOUTS, withExternalTimeout } from "@/lib/server/timeouts";
+import {
+  ACCOUNT_SORT_COLUMNS,
+  type parseAccountQuery,
+} from "@/lib/admin/account-query";
 
 interface AccountRow {
   id: string;
@@ -95,6 +99,37 @@ export async function getAllAccounts() {
   );
   if (error) throw error;
   return (data as AccountRow[]).map(formatAccount);
+}
+
+export async function listAccounts({
+  page,
+  limit,
+  search,
+  role,
+  sort,
+  direction,
+}: ReturnType<typeof parseAccountQuery>) {
+  let query = supabase
+    .from("auth_accounts")
+    .select(
+      "id, provider_user_id, name, email, picture_url, role, email_verified, enabled, created_at, updated_at, coordinator_scope_grants!coordinator_scope_grants_account_id_fkey(*)",
+      { count: "exact" },
+    );
+  if (search) {
+    const escaped = search.replace(/[\\%_]/g, "\\$&");
+    query = query.ilike("account_search_text", `%${escaped}%`);
+  }
+  if (role) query = query.eq("role", role);
+  const from = (page - 1) * limit;
+  const { data, error, count } = await query
+    .order(ACCOUNT_SORT_COLUMNS[sort], { ascending: direction === "asc" })
+    .order("id", { ascending: true })
+    .range(from, from + limit - 1);
+  if (error) throw error;
+  return {
+    accounts: (data as AccountRow[]).map(formatAccount),
+    total: count ?? 0,
+  };
 }
 
 export async function updateAccountName(id: string, name: string) {

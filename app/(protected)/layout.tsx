@@ -18,7 +18,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-svh w-full min-w-0">
-      <RoleChangeNotice />
+      <RoleChangeNotice hasNotice={Boolean(user.roleChangeNotice)} />
       <SessionKeepAlive />
       <DashboardNavigation role={role} />
       <main className="min-w-0 flex-1 px-4 sm:px-6">

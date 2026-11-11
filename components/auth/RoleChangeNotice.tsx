@@ -4,10 +4,15 @@ import { useEffect } from "react";
 
 import { useToast } from "@/components/ui/Toast";
 
-export default function RoleChangeNotice() {
+export default function RoleChangeNotice({
+  hasNotice,
+}: {
+  hasNotice: boolean;
+}) {
   const { showToast } = useToast();
 
   useEffect(() => {
+    if (!hasNotice) return;
     let active = true;
 
     async function consumeNotice() {
@@ -35,7 +40,7 @@ export default function RoleChangeNotice() {
     return () => {
       active = false;
     };
-  }, [showToast]);
+  }, [hasNotice, showToast]);
 
   return null;
 }

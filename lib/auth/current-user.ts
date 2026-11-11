@@ -1,7 +1,8 @@
 import { authProvider } from "./provider";
 import { unstable_rethrow } from "next/navigation";
+import { cache } from "react";
 
-export async function getCurrentUser() {
+export const getCurrentUser = cache(async function getCurrentUser() {
   try {
     return await authProvider.getCurrentUser();
   } catch (error) {
@@ -12,4 +13,4 @@ export async function getCurrentUser() {
     });
     throw error;
   }
-}
+});

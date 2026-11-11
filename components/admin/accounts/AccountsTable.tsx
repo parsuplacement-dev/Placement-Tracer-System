@@ -54,6 +54,7 @@ interface Account {
 
 interface ServerDataResponse {
   accounts: Account[];
+  total: number;
   success: boolean;
 }
 
@@ -108,15 +109,25 @@ export default function AccountsTable({
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function fetchAccounts() {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await fetch("/api/admin/accounts", {
+        const params = new URLSearchParams({
+          page: String(currentPage),
+          limit: String(itemsPerPage),
+          search: searchQuery,
+          role: roleFilter,
+          sort: sortKey,
+          direction: sortDirection,
+        });
+        const res = await fetch(`/api/admin/accounts?${params}`, {
           cache: "no-store",
           credentials: "include",
+          signal: controller.signal,
         });
 
         const data: ServerDataResponse = await res.json();
@@ -125,44 +136,14 @@ export default function AccountsTable({
           throw new Error("Failed to load accounts.");
         }
 
-        let filtered = data.accounts ?? [];
-
-        if (searchQuery.trim()) {
-          const query = searchQuery.toLowerCase();
-
-          filtered = filtered.filter(
-            (account) =>
-              account.name.toLowerCase().includes(query) ||
-              account.email.toLowerCase().includes(query),
-          );
-        }
-
-        if (roleFilter) {
-          filtered = filtered.filter((account) => account.role === roleFilter);
-        }
-
-        filtered.sort((left, right) => {
-          const leftValue = left[sortKey];
-          const rightValue = right[sortKey];
-          const comparison =
-            typeof leftValue === "boolean" && typeof rightValue === "boolean"
-              ? Number(leftValue) - Number(rightValue)
-              : String(leftValue).localeCompare(String(rightValue), undefined, {
-                  numeric: true,
-                  sensitivity: "base",
-                });
-
-          return sortDirection === "asc" ? comparison : -comparison;
-        });
-
         if (cancelled) return;
-
-        setTotalRows(filtered.length);
-
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-
-        setAccounts(filtered.slice(start, end));
+        const lastPage = Math.max(1, Math.ceil(data.total / itemsPerPage));
+        if (currentPage > lastPage) {
+          onPageChange(lastPage);
+          return;
+        }
+        setTotalRows(data.total);
+        setAccounts(data.accounts ?? []);
       } catch (err: unknown) {
         if (!cancelled) {
           setError(
@@ -183,8 +164,17 @@ export default function AccountsTable({
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [currentPage, reloadKey, roleFilter, searchQuery, sortDirection, sortKey]);
+  }, [
+    currentPage,
+    reloadKey,
+    roleFilter,
+    searchQuery,
+    sortDirection,
+    sortKey,
+    onPageChange,
+  ]);
 
   const handleSort = (key: AccountSortKey) => {
     setSortDirection((current) =>

@@ -18,10 +18,6 @@ interface StudyPeriodRow {
   status: StudyPeriodStatus;
 }
 
-interface FormVersionRow {
-  definition: FormDefinition;
-}
-
 interface StudyContextRow extends StudyPeriodRow {
   definition: FormDefinition;
 }
@@ -40,48 +36,21 @@ function mapStudyPeriod(row: StudyPeriodRow): StudyPeriod {
   };
 }
 
-async function getDefinitionForStudy(study: StudyPeriodRow) {
-  const { data, error } = await supabase
-    .from("form_versions")
-    .select("definition")
-    .eq("id", study.form_version_id)
-    .single();
-
-  if (error) throw error;
-
-  return (data as FormVersionRow).definition;
-}
-
 export async function getOpenStudyByFormSlug(
   slug: string,
 ): Promise<StudyContext | null> {
-  const { data: form, error: formError } = await supabase
-    .from("form_definitions")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (formError) throw formError;
-  if (!form) return null;
-
   const { data: study, error: studyError } = await supabase
-    .from("study_periods_with_status")
-    .select("*")
-    .eq("form_id", form.id)
-    .eq("status", "open")
-    .order("academic_year", { ascending: false })
-    .order("opens_at", { ascending: false })
-    .limit(1)
+    .rpc("get_open_study_context", { target_slug: slug })
     .maybeSingle();
 
   if (studyError) throw studyError;
   if (!study) return null;
 
-  const studyRow = study as StudyPeriodRow;
+  const studyRow = study as StudyContextRow;
 
   return {
     study: mapStudyPeriod(studyRow),
-    definition: await getDefinitionForStudy(studyRow),
+    definition: studyRow.definition,
   };
 }
 
