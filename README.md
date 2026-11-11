@@ -17,6 +17,33 @@ This README is the operational and developer handoff document. The UI rules are 
 - Tracks retryable import, Drive organization, direct-upload, and deletion states instead of silently losing work.
 - Exports accounts and responses as styled Excel workbooks and protects spreadsheet cells from formula injection.
 
+## PWA installation and caching
+
+The production app supports installation over HTTPS (or localhost). Open
+**Settings → Install app**, or use the browser's install menu. On iPhone/iPad,
+open the site in Safari and choose **Share → Add to Home Screen**.
+
+The manifest defines standalone launch, application icons, and the root start
+URL, where the existing session and role checks still apply. The service worker
+registers only in production and caches visited `/_next/static/` scripts, styles,
+and fonts (up to 160 assets). These content-addressed assets can be reused on
+repeat visits. Next.js already provides browser caching for production assets;
+installation itself does not speed up the initial download or database queries.
+Pages, React Server Component responses, APIs, authentication, and uploaded
+documents are never stored by the service worker. Records and submissions still
+require a connection. Offline navigation shows a static reconnect page; it does
+not provide offline form storage or submission.
+
+To verify, run `npm run build` and `npm start`, open localhost in a supported
+browser, and inspect Application → Manifest / Service Workers in developer tools.
+Install the app, revisit a page, then simulate offline mode and reload to check
+the reconnect page. Confirm Cache Storage contains only public static assets
+and `/offline.html`. Test sign-in/out and an app update while a tab remains open.
+The worker updates with normal browser lifecycle behavior; close existing tabs
+to activate a waiting worker. Bump the worker cache versions when changing the
+offline page or caching policy. Icon source is `public/Placement Unit.svg`; PNG
+variants include 192px, 512px, a safe-area maskable icon, and a 180px Apple icon.
+
 ## Technology and runtime
 
 | Area              | Implementation                                                                |

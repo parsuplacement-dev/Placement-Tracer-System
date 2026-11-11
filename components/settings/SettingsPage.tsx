@@ -14,6 +14,7 @@ import {
 import { MotionPreference } from "@/components/settings/MotionPreference";
 import { ColorThemePreference } from "@/components/settings/ColorThemePreference";
 import { AuditLogSection } from "@/components/settings/AuditLogSection";
+import { InstallApp } from "@/components/pwa/InstallApp";
 import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { type Role, ROLES } from "@/types";
 
@@ -109,6 +110,7 @@ export default function SettingsPage({
         <main className="min-w-0 space-y-5 sm:space-y-6">
           <ColorThemePreference />
           <MotionPreference />
+          <InstallApp />
           {role === ROLES.ADMIN && <AuditLogSection />}
 
           <section className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">

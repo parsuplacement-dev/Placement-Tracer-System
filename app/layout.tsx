@@ -2,14 +2,17 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
 import { MotionPreferenceProvider } from "@/components/settings/MotionPreference";
+import { PwaProvider } from "@/components/pwa/PwaProvider";
 
 export const metadata: Metadata = {
   title: "Placement Tracer System (Demo)",
   description: "Tracer System by the ParSU Placement Unit (Demo)",
   appleWebApp: {
     capable: true,
+    title: "ParSU Tracer",
     statusBarStyle: "black-translucent",
   },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
@@ -81,7 +84,9 @@ export default async function RootLayout({
       </head>
       <body className="relative min-h-full w-full">
         <MotionPreferenceProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <PwaProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </PwaProvider>
         </MotionPreferenceProvider>
       </body>
     </html>
